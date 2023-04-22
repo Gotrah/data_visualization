@@ -58,12 +58,6 @@ def load_sitka_weather():
     path = Path('weather_data/sitka_weather_2021_simple.csv')
     lines = path.read_text().splitlines()
     reader = csv.reader(lines)
-    header_row = next(reader)
-
-    # print(header_row)
-
-    #for index, column_header in enumerate(header_row):
-    #    print(index, column_header)
 
     # Extract dates and high temperatures.
     dates, highs, lows = [], [], []
@@ -73,7 +67,6 @@ def load_sitka_weather():
         dates.append(current_date)
         highs.append(high)
         lows.append(int(row[5]))
-
 
     # Plot the high temperatures.
     plt.style.use('seaborn')
@@ -105,7 +98,6 @@ def read_txt_file():
     counter = 0
     while not header_found and counter < 100:
         current_row = next(reader)
-        # print(current_row)
         if not current_row:
             header_found = True
         counter += 1
@@ -117,8 +109,6 @@ def read_txt_file():
     for index, column_header in enumerate(header_row):
         columns[column_header.strip()] = index
 
-    print(columns)
-
     next(reader)
 
     return columns, reader
@@ -129,7 +119,6 @@ def load_period_data(start, end, data_config):
 
     loaded_data = []
     dates = []
-    previous_value = None
     data_value = None
     total = 0
     count = 0
@@ -144,11 +133,6 @@ def load_period_data(start, end, data_config):
                 data_value = total
             elif data_config["data_type"] == DataType.AVERAGE:
                 data_value = total / count
-            # if previous_value is not None:
-            #     ma = previous_value * 0.8 + value * 0.2
-            # else:
-            #     ma = value
-            #previous_value = value
             loaded_data.append(data_value)
             dates.append(datetime.strptime(row[columns['YYYYMMDD']], '%Y%m%d'))
 
