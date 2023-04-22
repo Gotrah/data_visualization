@@ -4,12 +4,12 @@ from die import Die
 
 # Create a D6.
 die_1 = Die()
-die_2 = Die(num_sides=10)
+die_2 = Die(num_sides=6)
 
 # Make some rolls, and store results in a list.
-results = [die_1.roll() + die_2.roll() for _ in range(50_000)]
-max_result = die_1.num_sides + die_2.num_sides
-min_result = 1 * 2
+results = [die_1.roll() * die_2.roll() for _ in range(50_000)]
+max_result = die_1.num_sides * die_2.num_sides
+min_result = 1
 poss_results = range(min_result, max_result+1)
 frequencies = [results.count(value) for value in poss_results]
 
