@@ -2,8 +2,15 @@ from pathlib import Path
 import csv
 from datetime import datetime
 from copy import deepcopy
+from enum import Enum
 
 import matplotlib.pyplot as plt
+
+
+class DataType(Enum):
+    AVERAGE = 1
+    CUMULATIVE = 2
+    MOVING_AVERAGE = 3
 
 
 def load_death_valley_weather():
@@ -117,56 +124,58 @@ def read_txt_file():
     return columns, reader
 
 
-def load_period_data(start, end, field_to_ld):
+def load_period_data(start, end, data_config):
     columns, data = read_txt_file()
 
     loaded_data = []
     dates = []
     previous_value = None
+    data_value = None
     total = 0
+    count = 0
     for row in data:
         date = datetime.strptime(row[columns['YYYYMMDD']], '%Y%m%d')
 
         if start <= date <= end:
-            value = float(row[columns[field_to_ld]])/10
+            value = float(row[columns[data_config["field"]]])/10
             total += value
+            count += 1
+            if data_config["data_type"] == DataType.CUMULATIVE:
+                data_value = total
+            elif data_config["data_type"] == DataType.AVERAGE:
+                data_value = total / count
             # if previous_value is not None:
             #     ma = previous_value * 0.8 + value * 0.2
             # else:
             #     ma = value
-            previous_value = value
-            loaded_data.append(total)
+            #previous_value = value
+            loaded_data.append(data_value)
             dates.append(datetime.strptime(row[columns['YYYYMMDD']], '%Y%m%d'))
 
     return dates, loaded_data
 
 
-# Plot the high temperatures.
+def create_graph(data_config):
+    fig, ax = plt.subplots()
+    dates, data22 = load_period_data(datetime(2022, 3, 1), datetime(2022, 4, 30), data_config)
+    ax.plot(data22, color='blue', alpha=0.5, label="2022")
+
+    dates, data23 = load_period_data(datetime(2023, 3, 1), datetime(2023, 4, 30), data_config)
+    ax.plot(data23, color='red', alpha=0.5, label="2023")
+
+    ax.set_xlabel('', fontsize=16)
+    fig.autofmt_xdate()
+    plt.legend(loc="upper left")
+    ax.set_ylabel(data_config["y_label"], fontsize=16)
+    ax.tick_params(labelsize=16)
+
+
+# Plot the statistics.
 plt.style.use('seaborn')
-fig, ax = plt.subplots()
-# ax.plot(dates, highs, color='red', alpha=0.5)
-# ax.plot(dates, lows, color='blue', alpha=0.5)
-# ax.fill_between(dates, highs, lows, facecolor='blue', alpha=0.1)
+create_graph({"field": "SQ", "data_type": DataType.CUMULATIVE, "y_label": "Total sun hours"})
+create_graph({"field": "TX", "data_type": DataType.AVERAGE, "y_label": "Average Temperature (C)"})
+create_graph({"field": "RH", "data_type": DataType.CUMULATIVE, "y_label": "Total rainfall (mm)"})
 
-# field_to_load = "TX"
-field_to_load = "SQ"
-# field_to_load = "RH"
-
-dates, highs22 = load_period_data(datetime(2022, 3, 1), datetime(2022, 4, 30), field_to_load)
-ax.plot(highs22, color='blue', alpha=0.5, label="2022")
-
-dates, highs23 = load_period_data(datetime(2023, 3, 1), datetime(2023, 4, 30), field_to_load)
-ax.plot(highs23, color='red', alpha=0.5, label="2023")
-
-# print(highs23)
-
-# Format plot.
-# ax.set_title("Daily high temperatures, July 2021", fontsize=24)
-ax.set_xlabel('', fontsize=16)
-fig.autofmt_xdate()
-plt.legend(loc="upper left")
-ax.set_ylabel('Temperature (C)', fontsize=16)
-ax.tick_params(labelsize=16)
 
 plt.show()
 
